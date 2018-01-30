@@ -1,0 +1,508 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<style type="text/css">
+			li.casaxadrez {
+				position: relative;
+				height: 100px;
+				width: 100px;
+				float: left;
+				margin: 0px;
+				padding: 0px;
+				display: block;
+			}
+
+			li.casabranca {
+				background-color: #CDC;
+
+			}
+
+			li.casapreta {
+				background-color: #666;
+			}
+
+			div.clear {
+				clear: both;
+				width: 0px;
+				height: 0px;
+				margin: 0px;
+			}
+
+			#tabuleiroxadrez {
+				width: 800px;
+				border: solid;
+				padding: 0px;
+			}
+
+			div.peca {
+				height: 100px;
+				width: 100px;
+
+				background-color: red;
+				cursor: pointer;
+				z-index: 2;
+			}
+
+			div.peao_branco {
+				background: url(img/pecas/peao_branco.png) center no-repeat;
+			}
+
+
+			div.peao_preto {
+				background: url(img/pecas/peao_preto.png) center no-repeat;
+			}
+
+
+			div.bispo_branco {
+				background: url(img/pecas/bispo_branco.png) center no-repeat;
+			}
+
+
+			div.bispo_preto {
+				background: url(img/pecas/bispo_preto.png) center no-repeat;
+			}
+
+
+			div.cavalo_branco {
+				background: url(img/pecas/cavalo_branco.png) center no-repeat;
+			}
+
+			div.cavalo_preto {
+				background: url(img/pecas/cavalo_preto.png) center no-repeat;
+			}
+
+
+			div.torre_branco {
+				background: url(img/pecas/torre_branco.png) center no-repeat;
+			}
+
+
+			div.torre_preto {
+				background: url(img/pecas/torre_preto.png) center no-repeat;
+			}
+
+
+			div.rei_preto {
+				background: url(img/pecas/rei_preto.png) center no-repeat;
+			}
+
+
+			div.rei_branco {
+				background: url(img/pecas/rei_branco.png) center no-repeat;
+			}
+
+
+			div.rainha_branco {
+				background: url(img/pecas/rainha_branco.png) center no-repeat;
+			}
+
+
+			div.rainha_preto {
+				background: url(img/pecas/rainha_preto.png) center no-repeat;
+			}
+
+			
+
+		</style>
+	<script src="jquery-ui/jquery-1.7.2.js"></script>
+	<script src="jquery-ui/ui/jquery.ui.core.js"></script>
+	<script src="jquery-ui/ui/jquery.ui.widget.js"></script>
+	<script src="jquery-ui/ui/jquery.ui.mouse.js"></script>
+	<script src="jquery-ui/ui/jquery.ui.draggable.js"></script>
+	<script src="jquery-ui/ui/jquery.ui.droppable.js"></script>
+
+	<script>
+
+
+		$(function(){
+
+			const NAOMOVIMENTOU = 0;
+			const MOVIMENTOU = 1; 
+			const PERMITEPASSANT = 2;
+
+
+			var peoes_branco = new Array(9);
+			var peoes_preto = new Array(9);
+			for(var i = 1; i <= 8; i++) {
+				peoes_branco[i] = NAOMOVIMENTOU;
+				peoes_preto[i] = NAOMOVIMENTOU;
+			}
+
+			function converte_char(x_peca) {
+				switch(x_peca) {
+					case "a":
+						return 1;
+					case "b":
+						return 2;
+					case "c":
+						return 3;
+					case "d":
+						return 4;
+					case "e":
+						return 5;
+					case "f":
+						return 6;
+					case "g":
+						return 7;
+					case "h":
+						return 8; 
+				}
+			}
+
+			function tem_peca(x,y) {
+				switch(x) {
+					case 1 :
+						novo_x = 'a';
+						break;
+					case 2 :
+						novo_x = 'b';
+						break;
+					case 3 :
+						novo_x = 'c';
+						break;
+					case 4 :
+						novo_x = 'd';
+						break;
+					case 5 :
+						novo_x = 'e';
+						break;
+					case 6 :
+						novo_x = 'f';
+						break;
+					case 7 :
+						novo_x = 'g';
+						break;
+					case 8 :
+						novo_x = 'h';
+						break;
+				}
+				if($("#casa" + novo_x + y).has("div").length) return true;
+				return false;
+			}
+
+
+			function analisa_caminho(peca,peca_atual,tipo_peca,cor_peca,parent) {
+
+				x_peca = converte_char(peca.parent().attr('id').substr(4,1));	 
+				y_peca = parseInt(peca.parent().attr('id').substr(5,1));
+			
+				if(peca_atual) {
+					x_peca_atual = converte_char(peca_atual.parent().attr('id').substr(4,1));	 
+					y_peca_atual = parseInt(peca_atual.parent().attr('id').substr(5,1));					
+				} 
+				else {
+					x_peca_atual = converte_char(parent.attr('id').substr(4,1));
+					y_peca_atual = parseInt(parent.attr('id').substr(5,1));										
+				}
+			
+
+
+				switch(tipo_peca) {
+					
+					case "peao":
+						if(Math.abs(y_peca - y_peca_atual) == 2) {
+							if(y_peca > y_peca_atual) {
+								if(tem_peca(x_peca,y_peca_atual+1)) return false;
+							}
+							else if(tem_peca(x_peca,y_peca_atual-1)) return false;
+						}
+						break;
+
+					case "bispo":
+						while(x_peca_atual != x_peca) {
+
+							if(tem_peca(x_peca_atual,y_peca_atual)) return false;
+
+							if(y_peca_atual > y_peca) y_peca_atual--;
+							else y_peca_atual++;
+							
+							if(x_peca_atual > x_peca) x_peca_atual--;
+							else x_peca_atual++;
+						}
+						break;
+
+					case "rainha":	
+					case "torre":
+						while(x_peca_atual != x_peca || y_peca_atual != y_peca) {
+							if(tem_peca(x_peca_atual,y_peca_atual)) return false;
+
+							if(y_peca_atual != y_peca) {
+								if(y_peca_atual > y_peca) y_peca_atual--;
+								else y_peca_atual++;
+							}
+							
+							if(x_peca_atual != x_peca) {
+								if(x_peca_atual > x_peca) x_peca_atual--;
+								else x_peca_atual++;
+							}
+						}
+						break;
+				}
+
+				return true;
+			}
+
+			function verifica_movimento(peca,peca_atual,tipo_peca,cor_peca,parent) {
+
+				if(cor_peca == 'preto') {
+					multiplicador = -1;
+				}
+				else multiplicador = 1;
+
+				x_peca = converte_char(peca.parent().attr('id').substr(4,1));	 
+				y_peca = parseInt(peca.parent().attr('id').substr(5,1));
+			
+				if(peca_atual) {
+					x_peca_atual = converte_char(peca_atual.parent().attr('id').substr(4,1));
+					y_peca_atual = parseInt(peca_atual.parent().attr('id').substr(5,1));
+				} 
+				else {
+					x_peca_atual = converte_char(parent.attr('id').substr(4,1));
+					y_peca_atual = parseInt(parent.attr('id').substr(5,1));
+				}
+		
+				movimento_valido = false;
+				num_movimentos = 8;
+				
+				switch(tipo_peca) {
+			
+					/* Caso do Peao */
+					case "peao":
+
+						/* Definindo qual array de poes usar */
+						if(cor_peca == 'preto') peoes = peoes_preto;
+						else peoes = peoes_branco;
+
+
+						if(x_peca_atual - x_peca == 0) {
+							
+							if((y_peca_atual - y_peca)*multiplicador == 1) {
+								peoes[x_peca] = MOVIMENTOU;
+								movimento_valido = true;
+							}
+							
+							if((y_peca_atual - y_peca)*multiplicador == 2 && peoes[x_peca] == NAOMOVIMENTOU) {
+								peoes[x_peca] = PERMITEPASSANT; 
+								movimento_valido = true;
+							}
+
+						}
+
+						break;
+
+					case "cavalo":
+						if(Math.abs(x_peca - x_peca_atual) == 2 && Math.abs(y_peca - y_peca_atual) == 1) {
+							movimento_valido = true;
+						}
+						if(Math.abs(x_peca - x_peca_atual) == 1 && Math.abs(y_peca - y_peca_atual) == 2) {
+							movimento_valido = true;							
+						}
+
+						break;
+
+
+					case "bispo":
+
+						if(Math.abs(x_peca - x_peca_atual) == Math.abs(y_peca - y_peca_atual)) {
+							movimento_valido = true;
+						}
+
+						break;
+
+					case "torre":
+						if(Math.abs(x_peca - x_peca_atual) != 0 && Math.abs(y_peca - y_peca_atual) == 0) {
+							movimento_valido = true;
+						}
+
+						if(Math.abs(x_peca - x_peca_atual) == 0 && Math.abs(y_peca - y_peca_atual) != 0) {
+							movimento_valido = true;							
+						}
+
+						break;
+
+					case "rei":
+						num_movimentos = 1;
+					case "rainha":
+						
+						if(Math.abs(x_peca - x_peca_atual) <= num_movimentos && Math.abs(y_peca - y_peca_atual) == 0) {
+							movimento_valido = true;
+						}
+
+						if(Math.abs(x_peca - x_peca_atual) == 0 && Math.abs(y_peca - y_peca_atual) <= num_movimentos) {
+							movimento_valido = true;							
+						}
+						
+						if(Math.abs(x_peca - x_peca_atual) == Math.abs(y_peca - y_peca_atual) && Math.abs(y_peca - y_peca_atual) <= num_movimentos) {
+							movimento_valido = true;
+						}
+						
+						break;
+				}
+
+				return movimento_valido;
+			
+			}
+
+
+			num_jogadas = 2;
+
+			$("div.peca").draggable({
+				revert: true			
+			});
+
+			$(".casaxadrez").droppable({
+				tolerance: 'pointer',
+				drop: function(event,ui) {
+
+					peca = ui.draggable;
+					class_peca = peca.attr('class').split(/\s+/)[1];
+					cor_peca = class_peca.split('_')[1]; 
+					tipo_peca = class_peca.split('_')[0];
+
+
+					if($(this).children().first().html()) {
+
+						peca_atual = $(this).children().first();
+						class_peca_atual = peca_atual.attr('class').split(/\s+/)[1];
+						cor_peca_atual = class_peca_atual.split('_')[1];
+						tipo_peca_atual = class_peca_atual.split('_')[0];
+
+
+						/* verifica se é possível comer a peça adversária */
+						if(cor_peca != cor_peca_atual) {
+							if(verifica_movimento(peca,peca_atual,tipo_peca,cor_peca,$(this))) {
+								if(analisa_caminho(peca,peca_atual,tipo_peca,$(this))) {
+
+								}
+							}
+						}
+						
+					}
+					
+					else {
+						if(verifica_movimento(peca,null,tipo_peca,cor_peca,$(this))) {
+							if(analisa_caminho(peca,null,tipo_peca,cor_peca,$(this))) {
+								peca = ui.draggable;
+								novaposicao = peca.clone().appendTo($(this));
+								novaposicao.css("left","0px");
+								novaposicao.css("top","0px");
+								novaposicao.removeClass('ui-draggable-dragging');
+								novaposicao.removeClass('ui-draggable');
+								peca.remove(); 
+							}
+						}
+					}
+
+					if(1) $("div.peca").draggable({
+						revert: true			
+					});
+
+					else {
+						alert("fim!");
+					}
+
+
+				}
+			});
+		});
+
+	</script>
+
+	</head>
+
+	<body>
+
+		<ul id="tabuleiroxadrez">
+
+
+			<li id="casaa8" class="casaxadrez casabranca"> <div class="peca torre_preto"> </div> </li>
+			<li id="casab8" class="casaxadrez casapreta"> <div class="peca cavalo_preto"> </div> </li>
+			<li id="casac8" class="casaxadrez casabranca"> <div class="peca bispo_preto"> </div> </li>
+			<li id="casad8" class="casaxadrez casapreta"> <div class="peca rainha_preto"> </div> </li>
+			<li id="casae8" class="casaxadrez casabranca"> <div class="peca rei_preto"> </div> </li>
+			<li id="casaf8" class="casaxadrez casapreta"> <div class="peca bispo_preto"> </div> </li>
+			<li id="casag8" class="casaxadrez casabranca"> <div class="peca cavalo_preto"> </div> </li>
+			<li id="casah8" class="casaxadrez casacoldir casapreta"> <div class="peca torre_preto"> </div> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa7" class="casaxadrez casapreta"> <div class="peca peao_preto"> </div> </li>
+			<li id="casab7" class="casaxadrez casabranca"> <div class="peca peao_preto"> </div> </li>
+			<li id="casac7" class="casaxadrez casapreta"> <div class="peca peao_preto"> </div> </li>
+			<li id="casad7" class="casaxadrez casabranca"> <div class="peca peao_preto"> </div> </li>
+			<li id="casae7" class="casaxadrez casapreta"> <div class="peca peao_preto"> </div> </li>
+			<li id="casaf7" class="casaxadrez casabranca"> <div class="peca peao_preto"> </div> </li>
+			<li id="casag7" class="casaxadrez casapreta"> <div class="peca peao_preto"> </div> </li>
+			<li id="casah7" class="casaxadrez casacoldir casabranca"> <div class="peca peao_preto"> </div> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa6" class="casaxadrez casabranca"> </li>
+			<li id="casab6" class="casaxadrez casapreta"> </li>
+			<li id="casac6" class="casaxadrez casabranca"> </li>
+			<li id="casad6" class="casaxadrez casapreta"> </li>
+			<li id="casae6" class="casaxadrez casabranca"> </li>
+			<li id="casaf6" class="casaxadrez casapreta"> </li>
+			<li id="casag6" class="casaxadrez casabranca"> </li>
+			<li id="casah6" class="casaxadrez casacoldir casapreta"> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa5" class="casaxadrez casapreta"> </li>
+			<li id="casab5" class="casaxadrez casabranca"> </li>
+			<li id="casac5" class="casaxadrez casapreta"> </li>
+			<li id="casad5" class="casaxadrez casabranca"> </li>
+			<li id="casae5" class="casaxadrez casapreta"> </li>
+			<li id="casaf5" class="casaxadrez casabranca"> </li>
+			<li id="casag5" class="casaxadrez casapreta"> </li>
+			<li id="casah5" class="casaxadrez casacoldir casabranca"> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa4" class="casaxadrez casabranca"> </li>
+			<li id="casab4" class="casaxadrez casapreta"> </li>
+			<li id="casac4" class="casaxadrez casabranca"> </li>
+			<li id="casad4" class="casaxadrez casapreta"> </li>
+			<li id="casae4" class="casaxadrez casabranca"> </li>
+			<li id="casaf4" class="casaxadrez casapreta"> </li>
+			<li id="casag4" class="casaxadrez casabranca"> </li>
+			<li id="casah4" class="casaxadrez casacoldir casapreta"> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa3" class="casaxadrez casapreta"> </li>
+			<li id="casab3" class="casaxadrez casabranca"> </li>
+			<li id="casac3" class="casaxadrez casapreta"> </li>
+			<li id="casad3" class="casaxadrez casabranca"> </li>
+			<li id="casae3" class="casaxadrez casapreta"> </li>
+			<li id="casaf3" class="casaxadrez casabranca"> </li>
+			<li id="casag3" class="casaxadrez casapreta"> </li>
+			<li id="casah3" class="casaxadrez casacoldir casabranca"> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa2" class="casaxadrez casabranca"> <div class="peca peao_branco"> </div> </li>
+			<li id="casab2" class="casaxadrez casapreta"> <div class="peca peao_branco"> </div> </li>
+			<li id="casac2" class="casaxadrez casabranca"> <div class="peca peao_branco"> </div> </li>
+			<li id="casad2" class="casaxadrez casapreta"> <div class="peca peao_branco"> </div> </li>
+			<li id="casae2" class="casaxadrez casabranca"> <div class="peca peao_branco"> </div> </li>
+			<li id="casaf2" class="casaxadrez casapreta"> <div class="peca peao_branco"> </div> </li>
+			<li id="casag2" class="casaxadrez casabranca"> <div class="peca peao_branco"> </div> </li>
+			<li id="casah2" class="casaxadrez casacoldir casapreta"> <div class="peca peao_branco"> </div> </li>
+
+			<div class="clear"></div>
+
+			<li id="casaa1" class="casaxadrez casapreta"> <div class="peca torre_branco"> </div> </li>
+			<li id="casab1" class="casaxadrez casabranca"> <div class="peca cavalo_branco"> </div> </li>
+			<li id="casac1" class="casaxadrez casapreta"> <div class="peca bispo_branco"> </div> </li>
+			<li id="casad1" class="casaxadrez casabranca"> <div class="peca rainha_branco"> </div> </li>
+			<li id="casae1" class="casaxadrez casapreta"> <div class="peca rei_branco"> </div> </li>
+			<li id="casaf1" class="casaxadrez casabranca"> <div class="peca bispo_branco"> </div> </li>
+			<li id="casag1" class="casaxadrez casapreta"> <div class="peca cavalo_branco"> </div> </li>
+			<li id="casah1" class="casaxadrez casacoldir casabranca"> <div class="peca torre_branco"> </div> </li>
+
+			<div class="clear"></div>
+		</ul>
+
+	</body>
+</html>
